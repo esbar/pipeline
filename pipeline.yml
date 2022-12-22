@@ -6,7 +6,7 @@ resources:
   check_every: 30m
   source:
     uri: https://github.com/esbar/pipeline.yml.git
-
+## try
 jobs:
 # update this pipeline before updating child pipelines
 - name: set-self
