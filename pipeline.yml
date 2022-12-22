@@ -1,43 +1,27 @@
 ---
-name: my-pipeline
-
 resources:
-  - name: my-resource
-    type: git
-    source:
-      uri: https://github.com/esbar/pipeline.yml.git
+- name: concourse-examples
+  type: git
+  icon: github
+  check_every: 30m
+  source:
+    uri: https://github.com/esbar/pipeline.yml.git
 
 jobs:
-  - name: my-job
-    plan:
-      - get: my-resource
-      - put: other-pipeline
-        params:
-          TRIGGERED_BY: my-pipeline
-          HELLO_WORLD: "Hello, world!"
+# update this pipeline before updating child pipelines
+- name: set-self
+  public: true
+  plan:
+  - get: concourse-examples
+    trigger: true
+  - set_pipeline: self
+    file: concourse-examples/pipeline.yml
 
----
-name: other-pipeline
-
-resources:
-  - name: my-resource
-    type: git
-    source:
-      uri: https://github.com/esbar/pipeline.yml.git
-
-jobs:
-  - name: other-job
-    plan:
-      - get: my-resource
-      - task: my-task
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: alpine
-          run:
-            path: echo
-            args: [((hello_world))]
-        params:
-          HELLO_WORLD: ((hello_world))
+- name: set-example-pipelines
+  public: true
+  plan:
+  - get: concourse-examples
+    trigger: true
+    passed: [set-self]
+  - set_pipeline: job
+    file: concourse-examples/hello-world.yml
