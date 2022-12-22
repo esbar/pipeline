@@ -1,0 +1,43 @@
+---
+name: my-pipeline
+
+resources:
+  - name: my-resource
+    type: git
+    source:
+      uri: https://github.com/esbar/pipeline.yml.git
+
+jobs:
+  - name: my-job
+    plan:
+      - get: my-resource
+      - put: other-pipeline
+        params:
+          TRIGGERED_BY: my-pipeline
+          HELLO_WORLD: "Hello, world!"
+
+---
+name: other-pipeline
+
+resources:
+  - name: my-resource
+    type: git
+    source:
+      uri: https://github.com/esbar/pipeline.yml.git
+
+jobs:
+  - name: other-job
+    plan:
+      - get: my-resource
+      - task: my-task
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+          run:
+            path: echo
+            args: [((hello_world))]
+        params:
+          HELLO_WORLD: ((hello_world))
